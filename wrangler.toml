@@ -1,4 +1,4 @@
-name = "editor-update-server"
+name = "vv-update-api"
 main = "src/index.ts"
 compatibility_date = "2025-07-03"
 observability = { enabled = true }
