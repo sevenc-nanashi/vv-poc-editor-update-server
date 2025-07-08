@@ -50,11 +50,13 @@ async function getLatestVersion(): Promise<string> {
   return latestUpdateInfo.version;
 }
 
-app.get("/:artifact/latest.yml", async (c) => {
-  const { artifact } = c.req.param();
-  const latest = "0.25.0-preview-update.1"; // await getLatestVersion();
+// latest.yml, latest-mac.yml, latest-win.yml, latest-linux.yml
+app.get("/:artifact/:name{.+\\.yml}", async (c) => {
+  const { artifact, name } = c.req.param();
+  const latest = "999.0.9"; // await getLatestVersion();
+
   const latestInfo = await fetch(
-    `https://huggingface.co/sevenc-nanashi/vv-poc-editor-update-storage/resolve/main/${latest}/${artifact}/latest.yml`,
+    `https://huggingface.co/sevenc-nanashi/vv-poc-editor-update-storage/resolve/main/${latest}/${artifact}/${name}`,
   )
     .then((res) => {
       if (!res.ok) {
@@ -71,13 +73,13 @@ app.get("/:artifact/latest.yml", async (c) => {
     });
   }
 
-  latestInfo.path = `/${latest}/${latestInfo.path}`;
+  latestInfo.path = `/${artifact}/${latest}/${latestInfo.path}`;
   for (const file of latestInfo.files) {
-    file.url = `/${latest}/${file.url}`;
+    file.url = `/${artifact}/${latest}/${file.url}`;
   }
   if (latestInfo.packages) {
     for (const file of Object.values(latestInfo.packages)) {
-      file.path = `/${latest}/${file.path}`;
+      file.path = `/${artifact}/${latest}/${file.path}`;
     }
   }
 
@@ -89,7 +91,25 @@ app.get("/:artifact/latest.yml", async (c) => {
 
 app.get("/:artifact/:version/:file", async (c) => {
   const { version, artifact, file } = c.req.param();
-  return c.redirect(
+  const urls = [
     `https://huggingface.co/sevenc-nanashi/vv-poc-editor-update-storage/resolve/main/${version}/${artifact}/${file}`,
+    `https://github.com/sevenc-nanashi/voicevox/releases/download/${version}/${file}`,
+  ];
+  for (const url of urls) {
+    const res = await fetch(url, {
+      redirect: "manual",
+    });
+    if (res.status.toString().startsWith("3")) {
+      return c.redirect(url);
+    }
+  }
+
+  return c.json(
+    {
+      message: `File not found: ${file} for version ${version} in artifact ${artifact}`,
+    },
+    404,
   );
 });
+
+export default app;
