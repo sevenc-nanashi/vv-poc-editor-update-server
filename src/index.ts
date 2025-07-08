@@ -53,7 +53,7 @@ async function getLatestVersion(): Promise<string> {
 // latest.yml, latest-mac.yml, latest-win.yml, latest-linux.yml
 app.get("/:artifact/:name{.+\\.yml}", async (c) => {
   const { artifact, name } = c.req.param();
-  const latest = "999.0.9"; // await getLatestVersion();
+  const latest = "999.0.1"; // await getLatestVersion();
 
   const latestInfo = await fetch(
     `https://huggingface.co/sevenc-nanashi/vv-poc-editor-update-storage/resolve/main/${latest}/${artifact}/${name}`,
